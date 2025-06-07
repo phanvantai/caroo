@@ -9,15 +9,18 @@ import Foundation
 import SpriteKit
 
 class WinPopup: SKNode {
-  init(size: CGSize, winner: String, theme: GameScene.GameTheme) {
+  init(size: CGSize, winner: String, theme: ThemeManager.Theme) {
     super.init()
     self.name = "WinPopup"
+    self.isUserInteractionEnabled = false // Don't intercept touches - let them pass through
     
-    // Setup container with enhanced background blur
+    // Setup container with enhanced background blur that blocks all touches
     let blurBackground = SKShapeNode(rectOf: size)
     blurBackground.fillColor = .black
     blurBackground.strokeColor = .clear
     blurBackground.alpha = 0.4
+    blurBackground.zPosition = 999
+    blurBackground.isUserInteractionEnabled = true // This blocks background touches
     addChild(blurBackground)
     
     // Create animated background particles
@@ -25,6 +28,7 @@ class WinPopup: SKNode {
     
     // Create main popup container with enhanced design
     let popup = createMainPopup(theme: theme)
+    popup.zPosition = 1000 // Ensure popup is above the blur background
     
     // Add winner content
     let winContent = createWinContent(winner: winner, theme: theme)
@@ -66,7 +70,7 @@ class WinPopup: SKNode {
     popup.run(SKAction.repeatForever(float))
   }
   
-  private func createBackgroundParticles(size: CGSize, theme: GameScene.GameTheme) {
+  private func createBackgroundParticles(size: CGSize, theme: ThemeManager.Theme) {
     for _ in 0..<20 {
         let particle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...5))
         particle.fillColor = theme.playerXColor
@@ -88,7 +92,7 @@ class WinPopup: SKNode {
     }
   }
   
-  private func createMainPopup(theme: GameScene.GameTheme) -> SKNode {
+  private func createMainPopup(theme: ThemeManager.Theme) -> SKNode {
     let popup = SKNode()
     popup.zPosition = 100
     
@@ -107,7 +111,7 @@ class WinPopup: SKNode {
     background.lineWidth = 4
     
     // Add glow effect for neon theme
-    if theme == .neon {
+    if case .neon = theme {
         background.glowWidth = 8
     }
     
@@ -115,14 +119,17 @@ class WinPopup: SKNode {
     let gradientOverlay = SKShapeNode(rectOf: CGSize(width: 340, height: 240), cornerRadius: 22)
     gradientOverlay.fillColor = .white
     gradientOverlay.strokeColor = .clear
-    gradientOverlay.alpha = theme == .neon ? 0.1 : 0.3
+    gradientOverlay.alpha = {
+        if case .neon = theme { return 0.1 }
+        return 0.3
+    }()
     background.addChild(gradientOverlay)
     
     popup.addChild(background)
     return popup
   }
   
-  private func createWinContent(winner: String, theme: GameScene.GameTheme) -> SKNode {
+  private func createWinContent(winner: String, theme: ThemeManager.Theme) -> SKNode {
     let content = SKNode()
     content.position = CGPoint(x: 0, y: 40)
     
@@ -141,8 +148,8 @@ class WinPopup: SKNode {
     
     // Add win text with enhanced styling
     let winText = SKLabelNode(text: "\(winner) Wins!")
-    winText.fontName = "AvenirNext-Heavy"
-    winText.fontSize = 36
+    winText.fontName = "Futura-Bold"
+    winText.fontSize = 38
     winText.fontColor = winner == "X" ? theme.playerXColor : theme.playerOColor
     winText.position = CGPoint(x: 0, y: 10)
     
@@ -166,16 +173,19 @@ class WinPopup: SKNode {
     
     // Add congratulations message
     let congrats = SKLabelNode(text: "🎉 Congratulations! 🎉")
-    congrats.fontName = "AvenirNext-Medium"
-    congrats.fontSize = 18
-    congrats.fontColor = theme == .classic ? .darkGray : .white
+    congrats.fontName = "Optima-Bold"
+    congrats.fontSize = 20
+    congrats.fontColor = {
+        if case .classic = theme { return .darkGray }
+        return .white
+    }()
     congrats.position = CGPoint(x: 0, y: -25)
     content.addChild(congrats)
     
     return content
   }
   
-  private func createPlayAgainButton(theme: GameScene.GameTheme) -> SKNode {
+  private func createPlayAgainButton(theme: ThemeManager.Theme) -> SKNode {
     let buttonContainer = SKNode()
     buttonContainer.position = CGPoint(x: 0, y: -70)
     
@@ -195,7 +205,7 @@ class WinPopup: SKNode {
     buttonBackground.name = "PopupRestartButton"
     
     // Add glow effect for neon theme
-    if theme == .neon {
+    if case .neon = theme {
         buttonBackground.glowWidth = 6
     }
     
@@ -209,8 +219,8 @@ class WinPopup: SKNode {
     
     // Add button text with emoji
     let buttonText = SKLabelNode(text: "🎮 Play Again")
-    buttonText.fontName = "AvenirNext-Bold"
-    buttonText.fontSize = 22
+    buttonText.fontName = "Trebuchet MS-Bold"
+    buttonText.fontSize = 24
     buttonText.fontColor = .white
     buttonText.verticalAlignmentMode = .center
     buttonText.name = "PopupRestartButton"
@@ -240,7 +250,7 @@ class WinPopup: SKNode {
     ])))
     
     // Add glow pulse for neon theme
-    if theme == .neon {
+    if case .neon = theme {
         let glowPulse = SKAction.sequence([
             SKAction.fadeAlpha(to: 0.6, duration: 1.2),
             SKAction.fadeAlpha(to: 1.0, duration: 1.2)

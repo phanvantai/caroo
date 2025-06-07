@@ -28,44 +28,10 @@ class GameScene: SKScene {
   var isSinglePlayer: Bool = true
   
   // UI Theme properties
-  private var currentTheme: GameTheme = .neon
-  private var backgroundGradient: SKShapeNode?
-  
-  enum GameTheme {
-    case neon, classic, cosmic
-    
-    var backgroundColor: UIColor {
-      switch self {
-      case .neon: return UIColor(red: 0.05, green: 0.05, blue: 0.15, alpha: 1.0)
-      case .classic: return UIColor(red: 0.95, green: 0.95, blue: 0.92, alpha: 1.0)
-      case .cosmic: return UIColor(red: 0.02, green: 0.02, blue: 0.08, alpha: 1.0)
-      }
-    }
-    
-    var gridColor: UIColor {
-      switch self {
-      case .neon: return UIColor(red: 0.2, green: 0.8, blue: 1.0, alpha: 0.3)
-      case .classic: return UIColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 0.6)
-      case .cosmic: return UIColor(red: 0.6, green: 0.3, blue: 0.9, alpha: 0.4)
-      }
-    }
-    
-    var playerXColor: UIColor {
-      switch self {
-      case .neon: return UIColor(red: 0.0, green: 1.0, blue: 0.6, alpha: 1.0)
-      case .classic: return UIColor(red: 0.2, green: 0.4, blue: 0.8, alpha: 1.0)
-      case .cosmic: return UIColor(red: 1.0, green: 0.3, blue: 0.6, alpha: 1.0)
-      }
-    }
-    
-    var playerOColor: UIColor {
-      switch self {
-      case .neon: return UIColor(red: 1.0, green: 0.2, blue: 0.8, alpha: 1.0)
-      case .classic: return UIColor(red: 0.8, green: 0.2, blue: 0.2, alpha: 1.0)
-      case .cosmic: return UIColor(red: 0.3, green: 0.8, blue: 1.0, alpha: 1.0)
-      }
-    }
+  private var currentTheme: ThemeManager.Theme {
+    return ThemeManager.shared.currentTheme
   }
+  private var backgroundGradient: SKShapeNode?
   
   // Add strong reference to camera
   private var cameraNode: SKCameraNode?
@@ -94,90 +60,7 @@ class GameScene: SKScene {
   // Add property to track all created nodes
 //  private var allCreatedNodes = Set<SKNode>()
 //  
-  func addModeSelectionButton() {
-    // Create container node with enhanced design
-    let buttonContainer = SKNode()
-    buttonContainer.name = "ModeButton"
-    buttonContainer.position = CGPoint(x: 0, y: -200) // Fixed position relative to camera
-    buttonContainer.zPosition = 100
-    
-    // Create button shadow
-    let shadowBackground = SKShapeNode(rectOf: CGSize(width: 220, height: 50), cornerRadius: 25)
-    shadowBackground.fillColor = .black
-    shadowBackground.strokeColor = .clear
-    shadowBackground.alpha = 0.3
-    shadowBackground.position = CGPoint(x: 3, y: -3)
-    buttonContainer.addChild(shadowBackground)
-    
-    // Create button background with gradient effect
-    let background = SKShapeNode(rectOf: CGSize(width: 220, height: 50), cornerRadius: 25)
-    background.fillColor = currentTheme.playerXColor
-    background.strokeColor = .white
-    background.lineWidth = 3
-    background.alpha = 0.9
-    background.name = "ModeButton"
-    
-    // Add glow effect
-    let glowBackground = SKShapeNode(rectOf: CGSize(width: 240, height: 60), cornerRadius: 30)
-    glowBackground.fillColor = .clear
-    glowBackground.strokeColor = currentTheme.playerXColor
-    glowBackground.lineWidth = 2
-    glowBackground.alpha = 0.4
-    glowBackground.zPosition = -1
-    buttonContainer.addChild(glowBackground)
-    
-    // Add inner highlight
-    let innerGlow = SKShapeNode(rectOf: CGSize(width: 210, height: 40), cornerRadius: 20)
-    innerGlow.fillColor = .clear
-    innerGlow.strokeColor = .white
-    innerGlow.lineWidth = 1
-    innerGlow.alpha = 0.6
-    background.addChild(innerGlow)
-    
-    buttonContainer.addChild(background)
-    
-    // Create button text with enhanced styling
-    let buttonText = SKLabelNode(text: isSinglePlayer ? "🤖 Switch to 2 Players" : "👥 Switch to AI")
-    buttonText.fontName = "AvenirNext-Bold"
-    buttonText.fontSize = 18
-    buttonText.fontColor = .white
-    buttonText.verticalAlignmentMode = .center
-    buttonText.horizontalAlignmentMode = .center
-    buttonText.name = "ModeButton"
-    
-    // Add text shadow
-    let textShadow = SKLabelNode(text: buttonText.text)
-    textShadow.fontName = buttonText.fontName
-    textShadow.fontSize = buttonText.fontSize
-    textShadow.fontColor = .black
-    textShadow.alpha = 0.5
-    textShadow.position = CGPoint(x: 1, y: -1)
-    textShadow.verticalAlignmentMode = .center
-    textShadow.horizontalAlignmentMode = .center
-    buttonText.addChild(textShadow)
-    
-    buttonContainer.addChild(buttonText)
-    
-    // Enhanced pulsing animation
-    let pulseUp = SKAction.scale(to: 1.08, duration: 1.5)
-    let pulseDown = SKAction.scale(to: 0.95, duration: 1.5)
-    pulseUp.timingMode = .easeInEaseOut
-    pulseDown.timingMode = .easeInEaseOut
-    
-    background.run(SKAction.repeatForever(SKAction.sequence([
-        pulseUp,
-        pulseDown
-    ])))
-    
-    // Add glow pulse animation
-    let glowPulse = SKAction.sequence([
-        SKAction.fadeAlpha(to: 0.8, duration: 1.5),
-        SKAction.fadeAlpha(to: 0.2, duration: 1.5)
-    ])
-    glowBackground.run(SKAction.repeatForever(glowPulse))
-    
-    camera?.addChild(buttonContainer)
-  }
+
   
   override func didMove(to view: SKView) {
     // Set up camera for scrolling
@@ -187,6 +70,14 @@ class GameScene: SKScene {
         self.camera = camera
         camera.position = CGPoint(x: 0, y: 0)
     }
+    
+    // Listen for theme changes
+    NotificationCenter.default.addObserver(
+        self,
+        selector: #selector(handleThemeChange),
+        name: .themeDidChange,
+        object: nil
+    )
     
     // Create container for grid borders
     gridContainer = SKNode()
@@ -201,23 +92,43 @@ class GameScene: SKScene {
     createAnimatedBackground()
     
     setupGrid()
-    addModeSelectionButton()
     addThemeButton()
     addTurnIndicator()
     addBackButton()
   }
   
+  deinit {
+    NotificationCenter.default.removeObserver(self)
+  }
+  
+  @objc private func handleThemeChange() {
+    // Update background
+    backgroundColor = currentTheme.backgroundColor
+    
+    // Remove old background elements
+    camera?.children.filter { $0.name == "star" }.forEach { $0.removeFromParent() }
+    
+    // Recreate background if needed
+    createAnimatedBackground()
+    
+    // Update existing UI elements
+    updateUIForTheme()
+    
+    // Refresh grid
+    setupGrid()
+  }
+  
   func addTurnIndicator() {
     let indicator = SKNode()
     indicator.name = "TurnIndicator"
-    indicator.position = CGPoint(x: -120, y: 150) // Fixed position relative to camera
+    indicator.position = CGPoint(x: frame.width/2 - 40, y: frame.height/2 - 100) // Below theme button
     indicator.zPosition = 100
     
     // Background
-    let background = SKShapeNode(rectOf: CGSize(width: 120, height: 50), cornerRadius: 25)
-    background.fillColor = .clear
+    let background = SKShapeNode(rectOf: CGSize(width: 120, height: 35), cornerRadius: 17.5)
+    background.fillColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.3)
     background.strokeColor = currentTheme.gridColor
-    background.lineWidth = 2
+    background.lineWidth = 1
     background.alpha = 0.8
     
     // Turn text
@@ -275,17 +186,17 @@ class GameScene: SKScene {
   func addThemeButton() {
     let themeButton = SKNode()
     themeButton.name = "ThemeButton"
-    themeButton.position = CGPoint(x: 120, y: 150) // Fixed position relative to camera
+    themeButton.position = CGPoint(x: frame.width/2 - 40, y: frame.height/2 - 40) // Top-right corner
     themeButton.zPosition = 100
     
-    let background = SKShapeNode(circleOfRadius: 25)
-    background.fillColor = currentTheme.playerOColor
-    background.strokeColor = .white
-    background.lineWidth = 2
+    let background = SKShapeNode(circleOfRadius: 20)
+    background.fillColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.3)
+    background.strokeColor = currentTheme.playerOColor
+    background.lineWidth = 1
     background.name = "ThemeButton"
     
     let icon = SKLabelNode(text: "🎨")
-    icon.fontSize = 30
+    icon.fontSize = 25
     icon.verticalAlignmentMode = .center
     icon.horizontalAlignmentMode = .center
     icon.name = "ThemeButton"
@@ -302,32 +213,35 @@ class GameScene: SKScene {
   func addBackButton() {
     let backButton = SKNode()
     backButton.name = "BackButton"
-    backButton.position = CGPoint(x: -120, y: 150) // Position on top left, next to turn indicator
+    backButton.position = CGPoint(x: -frame.width/2 + 40, y: frame.height/2 - 40) // Top-left corner like nav bar
     backButton.zPosition = 100
     
-    let background = SKShapeNode(circleOfRadius: 25)
-    background.fillColor = UIColor(red: 0.8, green: 0.3, blue: 0.3, alpha: 0.9)
-    background.strokeColor = .white
-    background.lineWidth = 2
+    // Create a simple circular background
+    let background = SKShapeNode(circleOfRadius: 20)
+    background.fillColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.3)
+    background.strokeColor = UIColor(white: 1.0, alpha: 0.3)
+    background.lineWidth = 1
     background.name = "BackButton"
     
-    let icon = SKLabelNode(text: "←")
-    icon.fontSize = 30
-    icon.fontName = "AvenirNext-Bold"
-    icon.fontColor = .white
-    icon.verticalAlignmentMode = .center
-    icon.horizontalAlignmentMode = .center
-    icon.name = "BackButton"
+    // Create back arrow with chevron style - centered
+    let chevron = SKLabelNode(text: "‹")
+    chevron.fontSize = 28
+    chevron.fontName = "AvenirNext-Bold"
+    chevron.fontColor = .white
+    chevron.verticalAlignmentMode = .center
+    chevron.horizontalAlignmentMode = .center
+    chevron.position = CGPoint(x: 0, y: 0)
+    chevron.name = "BackButton"
     
     backButton.addChild(background)
-    backButton.addChild(icon)
+    backButton.addChild(chevron)
     
-    // Add subtle pulse animation
-    let pulse = SKAction.sequence([
-        SKAction.scale(to: 1.1, duration: 1.0),
-        SKAction.scale(to: 0.95, duration: 1.0)
+    // Add subtle hover effect
+    let hover = SKAction.sequence([
+        SKAction.fadeAlpha(to: 0.8, duration: 2.0),
+        SKAction.fadeAlpha(to: 1.0, duration: 2.0)
     ])
-    background.run(SKAction.repeatForever(pulse))
+    background.run(SKAction.repeatForever(hover))
     
     camera?.addChild(backButton)
   }
@@ -446,45 +360,10 @@ class GameScene: SKScene {
     let touchedNodes = camera.nodes(at: touchLocation)
     
     for node in touchedNodes {
-        if node.name == "ModeButton" || node.parent?.name == "ModeButton" {
-            // Find the button container
-            let buttonContainer = node.name == "ModeButton" ? (node.parent ?? node) : node.parent!
+        if node.name == "ThemeButton" || node.parent?.name == "ThemeButton" {
+            // Don't allow theme button interaction when game has ended
+            if gameEnded { return }
             
-            // Enhanced press animation with haptic feedback
-            buttonContainer.run(SKAction.sequence([
-                SKAction.group([
-                    SKAction.scale(to: 0.85, duration: 0.1),
-                    SKAction.fadeAlpha(to: 0.6, duration: 0.1)
-                ]),
-                SKAction.group([
-                    SKAction.scale(to: 1.1, duration: 0.15),
-                    SKAction.fadeAlpha(to: 1.0, duration: 0.15)
-                ]),
-                SKAction.scale(to: 1.0, duration: 0.1)
-            ]))
-            
-            // Play sound effect
-            SoundManager.shared.playButtonSound()
-            
-            // Toggle mode BEFORE updating text
-            isSinglePlayer.toggle()
-            
-            // Find and update the button text
-            for child in buttonContainer.children {
-                if let textNode = child as? SKLabelNode,
-                   textNode.name == "ModeButton" {
-                    // Update text with emojis based on the NEW state of isSinglePlayer
-                    textNode.text = isSinglePlayer ? "🤖 Switch to 2 Players" : "👥 Switch to AI"
-                    
-                    // Update shadow text
-                    if let shadowText = textNode.children.first as? SKLabelNode {
-                        shadowText.text = textNode.text
-                    }
-                    break
-                }
-            }
-            return
-        } else if node.name == "ThemeButton" || node.parent?.name == "ThemeButton" {
             // Handle theme switching
             let buttonContainer = node.name == "ThemeButton" ? (node.parent ?? node) : node.parent!
             
@@ -524,6 +403,9 @@ class GameScene: SKScene {
             }
             return
         } else if node.name == "BackButton" || node.parent?.name == "BackButton" {
+            // Don't allow back button interaction when game has ended
+            if gameEnded { return }
+            
             // Handle back button press
             let buttonContainer = node.name == "BackButton" ? (node.parent ?? node) : node.parent!
             
@@ -599,41 +481,10 @@ class GameScene: SKScene {
   }
   
   func switchTheme() {
-    switch currentTheme {
-    case .neon:
-        currentTheme = .classic
-    case .classic:
-        currentTheme = .cosmic
-    case .cosmic:
-        currentTheme = .neon
-    }
-    
-    // Update background
-    backgroundColor = currentTheme.backgroundColor
-    
-    // Remove old background elements
-    camera?.children.filter { $0.name == "star" }.forEach { $0.removeFromParent() }
-    
-    // Recreate background if needed
-    createAnimatedBackground()
-    
-    // Update existing UI elements
-    updateUIForTheme()
-    
-    // Refresh grid
-    setupGrid()
+    ThemeManager.shared.switchToNextTheme()
   }
   
   func updateUIForTheme() {
-    // Update mode button colors
-    if let modeButton = camera?.childNode(withName: "ModeButton") {
-        for child in modeButton.children {
-            if let shapeNode = child as? SKShapeNode, child.name == "ModeButton" {
-                shapeNode.fillColor = currentTheme.playerXColor
-            }
-        }
-    }
-    
     // Update theme button colors
     if let themeButton = camera?.childNode(withName: "ThemeButton") {
         for child in themeButton.children {
@@ -782,7 +633,7 @@ class GameScene: SKScene {
     
     // Clear camera children except UI elements
     camera?.children.forEach { node in
-        if node.name != "ModeButton" && node.name != "ThemeButton" {
+        if node.name != "ThemeButton" && node.name != "BackButton" {
             node.removeFromParent()
         }
     }
@@ -1117,9 +968,5 @@ class GameScene: SKScene {
     node.verticalAlignmentMode = .center
     node.horizontalAlignmentMode = .center
     return node
-  }
-  
-  // Add cleanup in deinit
-  deinit {
   }
 }
