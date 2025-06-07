@@ -9,96 +9,228 @@ import Foundation
 import SpriteKit
 
 class WinPopup: SKNode {
-  init(size: CGSize, winner: String) {
+  init(size: CGSize, winner: String, theme: GameScene.GameTheme) {
     super.init()
-    self.name = "WinPopup"  // Add name to the popup node
+    self.name = "WinPopup"
     
-    // Setup container with background blur
+    // Setup container with enhanced background blur
     let blurBackground = SKShapeNode(rectOf: size)
     blurBackground.fillColor = .black
     blurBackground.strokeColor = .clear
-    blurBackground.alpha = 0.3
+    blurBackground.alpha = 0.4
     addChild(blurBackground)
     
-    // Create popup container with shadow
-    let popup = SKShapeNode(rectOf: CGSize(width: 300, height: 200), cornerRadius: 20)
-    popup.fillColor = .white
-    popup.strokeColor = .systemBlue
-    popup.lineWidth = 3
-    popup.zPosition = 100
+    // Create animated background particles
+    createBackgroundParticles(size: size, theme: theme)
     
-    // Add gradient overlay
-    let gradientOverlay = SKShapeNode(rectOf: CGSize(width: 296, height: 196), cornerRadius: 18)
-    gradientOverlay.fillColor = .white
-    gradientOverlay.strokeColor = .white
-    gradientOverlay.alpha = 0.5
-    popup.addChild(gradientOverlay)
+    // Create main popup container with enhanced design
+    let popup = createMainPopup(theme: theme)
     
-    // Add win text with animation
-    let winText = SKLabelNode(text: "\(winner) Wins!")
-    winText.fontName = "AvenirNext-Bold"
-    winText.fontSize = 40
-    winText.fontColor = .systemBlue
-    winText.position = CGPoint(x: 0, y: 20)
+    // Add winner content
+    let winContent = createWinContent(winner: winner, theme: theme)
+    popup.addChild(winContent)
     
-    // Add text shadow
-    let winTextShadow = SKLabelNode(text: winText.text)
-    winTextShadow.fontName = winText.fontName
-    winTextShadow.fontSize = winText.fontSize
-    winTextShadow.fontColor = .black
-    winTextShadow.alpha = 0.2
-    winTextShadow.position = CGPoint(x: 2, y: -2)
-    winText.addChild(winTextShadow)
+    // Add enhanced play again button
+    let playAgainButton = createPlayAgainButton(theme: theme)
+    popup.addChild(playAgainButton)
     
-    // Create play again button
-    let buttonBackground = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 25)
-    buttonBackground.fillColor = .systemBlue
-    buttonBackground.strokeColor = .white
-    buttonBackground.lineWidth = 2
-    buttonBackground.position = CGPoint(x: 0, y: -40)
-    buttonBackground.name = "PopupRestartButton"
-    
-    // Add button text with the same name for touch handling
-    let buttonText = SKLabelNode(text: "Play Again")
-    buttonText.fontName = "AvenirNext-Bold"
-    buttonText.fontSize = 24
-    buttonText.fontColor = .white
-    buttonText.verticalAlignmentMode = .center
-    buttonText.name = "PopupRestartButton"  // Same name as background for consistent touch handling
-    buttonBackground.addChild(buttonText)
-    
-    // Add button shadow
-    let buttonShadow = SKShapeNode(rectOf: CGSize(width: 200, height: 50), cornerRadius: 25)
-    buttonShadow.fillColor = .black
-    buttonShadow.strokeColor = .clear
-    buttonShadow.alpha = 0.2
-    buttonShadow.position = CGPoint(x: 0, y: -4)
-    buttonBackground.insertChild(buttonShadow, at: 0)
-    
-    // Add elements to popup
-    popup.addChild(winText)
-    popup.addChild(buttonBackground)
     addChild(popup)
     
-    // Add animations
-    popup.setScale(0.5)
+    // Enhanced entrance animation
+    popup.setScale(0.1)
     popup.alpha = 0
+    popup.zRotation = CGFloat.pi
     
     let appearSequence = SKAction.group([
-      SKAction.scale(to: 1.1, duration: 0.3),
-      SKAction.fadeIn(withDuration: 0.3)
+      SKAction.scale(to: 1.1, duration: 0.5),
+      SKAction.fadeIn(withDuration: 0.5),
+      SKAction.rotate(toAngle: 0, duration: 0.5)
     ])
     
-    let bounceBack = SKAction.scale(to: 1.0, duration: 0.1)
+    let bounceBack = SKAction.sequence([
+        SKAction.scale(to: 0.95, duration: 0.1),
+        SKAction.scale(to: 1.0, duration: 0.1)
+    ])
     
     popup.run(SKAction.sequence([
       appearSequence,
       bounceBack
     ]))
     
-    // Add button hover animation
-    let pulseUp = SKAction.scale(to: 1.05, duration: 1.0)
-    let pulseDown = SKAction.scale(to: 0.95, duration: 1.0)
+    // Add floating animation
+    let float = SKAction.sequence([
+        SKAction.moveBy(x: 0, y: 10, duration: 2.0),
+        SKAction.moveBy(x: 0, y: -10, duration: 2.0)
+    ])
+    float.timingMode = .easeInEaseOut
+    popup.run(SKAction.repeatForever(float))
+  }
+  
+  private func createBackgroundParticles(size: CGSize, theme: GameScene.GameTheme) {
+    for _ in 0..<20 {
+        let particle = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...5))
+        particle.fillColor = theme.playerXColor
+        particle.alpha = 0.6
+        particle.position = CGPoint(
+            x: CGFloat.random(in: -size.width/2...size.width/2),
+            y: CGFloat.random(in: -size.height/2...size.height/2)
+        )
+        particle.zPosition = 10
+        
+        let moveAction = SKAction.moveBy(x: CGFloat.random(in: -50...50), y: CGFloat.random(in: -50...50), duration: 3.0)
+        let fadeAction = SKAction.sequence([
+            SKAction.fadeIn(withDuration: 1.5),
+            SKAction.fadeOut(withDuration: 1.5)
+        ])
+        
+        particle.run(SKAction.repeatForever(SKAction.group([moveAction, fadeAction])))
+        addChild(particle)
+    }
+  }
+  
+  private func createMainPopup(theme: GameScene.GameTheme) -> SKNode {
+    let popup = SKNode()
+    popup.zPosition = 100
+    
+    // Create shadow
+    let shadow = SKShapeNode(rectOf: CGSize(width: 350, height: 250), cornerRadius: 25)
+    shadow.fillColor = .black
+    shadow.strokeColor = .clear
+    shadow.alpha = 0.3
+    shadow.position = CGPoint(x: 5, y: -5)
+    popup.addChild(shadow)
+    
+    // Create main background with theme colors
+    let background = SKShapeNode(rectOf: CGSize(width: 350, height: 250), cornerRadius: 25)
+    background.fillColor = theme.backgroundColor
+    background.strokeColor = theme.playerXColor
+    background.lineWidth = 4
+    
+    // Add glow effect for neon theme
+    if theme == .neon {
+        background.glowWidth = 8
+    }
+    
+    // Add gradient overlay
+    let gradientOverlay = SKShapeNode(rectOf: CGSize(width: 340, height: 240), cornerRadius: 22)
+    gradientOverlay.fillColor = .white
+    gradientOverlay.strokeColor = .clear
+    gradientOverlay.alpha = theme == .neon ? 0.1 : 0.3
+    background.addChild(gradientOverlay)
+    
+    popup.addChild(background)
+    return popup
+  }
+  
+  private func createWinContent(winner: String, theme: GameScene.GameTheme) -> SKNode {
+    let content = SKNode()
+    content.position = CGPoint(x: 0, y: 40)
+    
+    // Add trophy emoji
+    let trophy = SKLabelNode(text: "🏆")
+    trophy.fontSize = 50
+    trophy.position = CGPoint(x: 0, y: 60)
+    content.addChild(trophy)
+    
+    // Animate trophy
+    let trophyBounce = SKAction.sequence([
+        SKAction.scale(to: 1.2, duration: 0.5),
+        SKAction.scale(to: 1.0, duration: 0.5)
+    ])
+    trophy.run(SKAction.repeatForever(trophyBounce))
+    
+    // Add win text with enhanced styling
+    let winText = SKLabelNode(text: "\(winner) Wins!")
+    winText.fontName = "AvenirNext-Heavy"
+    winText.fontSize = 36
+    winText.fontColor = winner == "X" ? theme.playerXColor : theme.playerOColor
+    winText.position = CGPoint(x: 0, y: 10)
+    
+    // Add text shadow
+    let winTextShadow = SKLabelNode(text: winText.text)
+    winTextShadow.fontName = winText.fontName
+    winTextShadow.fontSize = winText.fontSize
+    winTextShadow.fontColor = .black
+    winTextShadow.alpha = 0.3
+    winTextShadow.position = CGPoint(x: 2, y: -2)
+    winText.addChild(winTextShadow)
+    
+    // Add text animation
+    let textPulse = SKAction.sequence([
+        SKAction.scale(to: 1.1, duration: 0.8),
+        SKAction.scale(to: 1.0, duration: 0.8)
+    ])
+    winText.run(SKAction.repeatForever(textPulse))
+    
+    content.addChild(winText)
+    
+    // Add congratulations message
+    let congrats = SKLabelNode(text: "🎉 Congratulations! 🎉")
+    congrats.fontName = "AvenirNext-Medium"
+    congrats.fontSize = 18
+    congrats.fontColor = theme == .classic ? .darkGray : .white
+    congrats.position = CGPoint(x: 0, y: -25)
+    content.addChild(congrats)
+    
+    return content
+  }
+  
+  private func createPlayAgainButton(theme: GameScene.GameTheme) -> SKNode {
+    let buttonContainer = SKNode()
+    buttonContainer.position = CGPoint(x: 0, y: -70)
+    
+    // Create button shadow
+    let buttonShadow = SKShapeNode(rectOf: CGSize(width: 220, height: 55), cornerRadius: 27.5)
+    buttonShadow.fillColor = .black
+    buttonShadow.strokeColor = .clear
+    buttonShadow.alpha = 0.3
+    buttonShadow.position = CGPoint(x: 3, y: -3)
+    buttonContainer.addChild(buttonShadow)
+    
+    // Create main button
+    let buttonBackground = SKShapeNode(rectOf: CGSize(width: 220, height: 55), cornerRadius: 27.5)
+    buttonBackground.fillColor = theme.playerOColor
+    buttonBackground.strokeColor = .white
+    buttonBackground.lineWidth = 3
+    buttonBackground.name = "PopupRestartButton"
+    
+    // Add glow effect for neon theme
+    if theme == .neon {
+        buttonBackground.glowWidth = 6
+    }
+    
+    // Add inner highlight
+    let innerHighlight = SKShapeNode(rectOf: CGSize(width: 210, height: 45), cornerRadius: 22.5)
+    innerHighlight.fillColor = .clear
+    innerHighlight.strokeColor = .white
+    innerHighlight.lineWidth = 1
+    innerHighlight.alpha = 0.6
+    buttonBackground.addChild(innerHighlight)
+    
+    // Add button text with emoji
+    let buttonText = SKLabelNode(text: "🎮 Play Again")
+    buttonText.fontName = "AvenirNext-Bold"
+    buttonText.fontSize = 22
+    buttonText.fontColor = .white
+    buttonText.verticalAlignmentMode = .center
+    buttonText.name = "PopupRestartButton"
+    
+    // Add text shadow
+    let textShadow = SKLabelNode(text: buttonText.text)
+    textShadow.fontName = buttonText.fontName
+    textShadow.fontSize = buttonText.fontSize
+    textShadow.fontColor = .black
+    textShadow.alpha = 0.4
+    textShadow.position = CGPoint(x: 1, y: -1)
+    textShadow.verticalAlignmentMode = .center
+    buttonText.addChild(textShadow)
+    
+    buttonBackground.addChild(buttonText)
+    buttonContainer.addChild(buttonBackground)
+    
+    // Enhanced button animations
+    let pulseUp = SKAction.scale(to: 1.08, duration: 1.2)
+    let pulseDown = SKAction.scale(to: 0.95, duration: 1.2)
     pulseUp.timingMode = .easeInEaseOut
     pulseDown.timingMode = .easeInEaseOut
     
@@ -106,6 +238,17 @@ class WinPopup: SKNode {
       pulseUp,
       pulseDown
     ])))
+    
+    // Add glow pulse for neon theme
+    if theme == .neon {
+        let glowPulse = SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.6, duration: 1.2),
+            SKAction.fadeAlpha(to: 1.0, duration: 1.2)
+        ])
+        buttonBackground.run(SKAction.repeatForever(glowPulse))
+    }
+    
+    return buttonContainer
   }
   
   required init?(coder aDecoder: NSCoder) {

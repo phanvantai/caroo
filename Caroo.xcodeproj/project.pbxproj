@@ -16,6 +16,8 @@
 		D1408DDA2D36F62700EDDBC7 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1408DD02D36F62700EDDBC7 /* LaunchScreen.storyboard */; };
 		D1408DDB2D36F62700EDDBC7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D1408DD22D36F62700EDDBC7 /* Main.storyboard */; };
 		D1408DDE2D36F67C00EDDBC7 /* WinPopup.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1408DDD2D36F67C00EDDBC7 /* WinPopup.swift */; };
+		D1408DDF2D36F68000EDDBC7 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */; };
+		D1408DE02D36F69000EDDBC7 /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1408DDF2D36F69000EDDBC7 /* MenuScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,8 @@
 		D1408DCF2D36F62700EDDBC7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D1408DD12D36F62700EDDBC7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D1408DDD2D36F67C00EDDBC7 /* WinPopup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WinPopup.swift; sourceTree = "<group>"; };
+		D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
+		D1408DDF2D36F69000EDDBC7 /* MenuScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -118,6 +122,7 @@
 				D1408DCC2D36F62700EDDBC7 /* GameScene.sks */,
 				D1408DCD2D36F62700EDDBC7 /* GameScene.swift */,
 				D1408DCE2D36F62700EDDBC7 /* GameViewController.swift */,
+				D1408DDF2D36F69000EDDBC7 /* MenuScene.swift */,
 				D1408DD02D36F62700EDDBC7 /* LaunchScreen.storyboard */,
 				D1408DD22D36F62700EDDBC7 /* Main.storyboard */,
 			);
@@ -128,6 +133,7 @@
 			isa = PBXGroup;
 			children = (
 				D1408DDD2D36F67C00EDDBC7 /* WinPopup.swift */,
+				D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -282,6 +288,8 @@
 				D1408DD52D36F62700EDDBC7 /* GameScene.swift in Sources */,
 				D1408DD62D36F62700EDDBC7 /* GameViewController.swift in Sources */,
 				D1408DDE2D36F67C00EDDBC7 /* WinPopup.swift in Sources */,
+				D1408DDF2D36F68000EDDBC7 /* SoundManager.swift in Sources */,
+				D1408DE02D36F69000EDDBC7 /* MenuScene.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
