@@ -98,7 +98,6 @@ class GameScene: SKScene {
     addThemeButton()
     addTurnIndicator()
     addBackButton()
-    addAIDifficultyIndicator() // Add AI difficulty indicator on start
   }
   
   deinit {
@@ -474,154 +473,10 @@ class GameScene: SKScene {
         
         currentPlayer = (currentPlayer == "X") ? "O" : "X"
         updateTurnIndicator()
-        
-        if isSinglePlayer && currentPlayer == "O" {
-            // Show AI thinking animation and use difficulty-based delay
-            showAIThinking()
-            let thinkingTime = AIBot.shared.currentDifficulty.thinkingTime
-            DispatchQueue.main.asyncAfter(deadline: .now() + thinkingTime) {
-                self.hideAIThinking()
-                self.aiMove()
-            }
-        }
     }
     
     // Reset scrolling flag
     isScrolling = false
-  }
-  
-  // MARK: - AI Difficulty Display
-  
-  func addAIDifficultyIndicator() {
-    guard isSinglePlayer else { return }
-    
-    let difficultyNode = SKNode()
-    difficultyNode.name = "AIDifficultyIndicator"
-    difficultyNode.zPosition = 95
-    
-    // Background
-    let background = SKShapeNode(rectOf: CGSize(width: 160, height: 35), cornerRadius: 17.5)
-    background.fillColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.7)
-    background.strokeColor = currentTheme.accentColor
-    background.lineWidth = 1.5
-    
-    // Add glow for neon theme
-    if currentTheme == .neon {
-      background.glowWidth = 2
-    }
-    
-    difficultyNode.addChild(background)
-    
-    // Difficulty text
-    let difficultyText = getDifficultyDisplayText()
-    let difficultyLabel = SKLabelNode(text: difficultyText)
-    difficultyLabel.fontName = "AvenirNext-Bold"
-    difficultyLabel.fontSize = 12
-    difficultyLabel.fontColor = currentTheme.accentColor
-    difficultyLabel.verticalAlignmentMode = .center
-    difficultyLabel.horizontalAlignmentMode = .center
-    difficultyNode.addChild(difficultyLabel)
-    
-    // Position at top-left of screen
-    difficultyNode.position = CGPoint(x: -frame.width/2 + 90, y: frame.height/2 - 80)
-    
-    // Add entrance animation
-    difficultyNode.alpha = 0
-    difficultyNode.run(SKAction.sequence([
-      SKAction.wait(forDuration: 1.0),
-      SKAction.fadeIn(withDuration: 0.5)
-    ]))
-    
-    camera?.addChild(difficultyNode)
-  }
-  
-  private func getDifficultyDisplayText() -> String {
-    let difficulty = AIBot.shared.currentDifficulty
-    if difficulty == .adaptive {
-      let effectiveDifficulty = AIBot.shared.getCurrentEffectiveDifficulty()
-      return "🧠 Adaptive (\(effectiveDifficulty.rawValue))"
-    } else {
-      return difficulty.description
-    }
-  }
-  
-  func showAdaptiveDifficultyNotification(_ reason: String) {
-    guard let camera = self.camera else { return }
-    
-    // Create notification node
-    let notificationNode = SKNode()
-    notificationNode.name = "AdaptiveDifficultyNotification"
-    notificationNode.zPosition = 150
-    
-    // Background
-    let background = SKShapeNode(rectOf: CGSize(width: 250, height: 50), cornerRadius: 25)
-    background.fillColor = UIColor(red: 0.2, green: 0.8, blue: 0.4, alpha: 0.9)
-    background.strokeColor = .white
-    background.lineWidth = 2
-    
-    // Add glow effect
-    if currentTheme == .neon {
-      background.glowWidth = 4
-    }
-    
-    notificationNode.addChild(background)
-    
-    // Notification text
-    let notificationText = SKLabelNode(text: reason)
-    notificationText.fontName = "AvenirNext-Bold"
-    notificationText.fontSize = 16
-    notificationText.fontColor = .white
-    notificationText.verticalAlignmentMode = .center
-    notificationText.horizontalAlignmentMode = .center
-    notificationNode.addChild(notificationText)
-    
-    // Position at top center of screen
-    notificationNode.position = CGPoint(x: 0, y: frame.height/2 - 120)
-    
-    // Entrance animation
-    notificationNode.setScale(0)
-    notificationNode.alpha = 0
-    
-    let appearSequence = SKAction.group([
-      SKAction.scale(to: 1.0, duration: 0.3),
-      SKAction.fadeIn(withDuration: 0.3)
-    ])
-    
-    let dismissSequence = SKAction.group([
-      SKAction.scale(to: 0.8, duration: 0.3),
-      SKAction.fadeOut(withDuration: 0.3)
-    ])
-    
-    notificationNode.run(SKAction.sequence([
-      appearSequence,
-      SKAction.wait(forDuration: 2.5),
-      dismissSequence,
-      SKAction.removeFromParent()
-    ]))
-    
-    camera.addChild(notificationNode)
-    
-    // Update the difficulty indicator
-    updateDifficultyIndicator()
-  }
-  
-  private func updateDifficultyIndicator() {
-    guard let camera = self.camera,
-          let difficultyIndicator = camera.childNode(withName: "AIDifficultyIndicator") else { return }
-    
-    // Update the text
-    for child in difficultyIndicator.children {
-      if let labelNode = child as? SKLabelNode {
-        labelNode.text = getDifficultyDisplayText()
-        
-        // Add update animation
-        labelNode.run(SKAction.sequence([
-          SKAction.scale(to: 1.2, duration: 0.2),
-          SKAction.scale(to: 1.0, duration: 0.2)
-        ]))
-        break
-      }
-    }
   }
   
   func switchTheme() {
@@ -710,111 +565,6 @@ class GameScene: SKScene {
         addChild(particle)
     }
   }
-  
-  func aiMove() {
-    // Use the new AI bot to find the best move
-    guard let bestMove = AIBot.shared.findBestMove(for: grid, player: "O", opponent: "X") else {
-      // Fallback to center if no move found
-      let row = 0
-      let col = 0
-      grid[gridKey(row, col)] = "O"
-      let _ = placeMark(at: row, col: col, player: "O")
-      currentPlayer = "X"
-      updateTurnIndicator()
-      return
-    }
-    
-    let (row, col) = bestMove
-    
-    // Place the AI move
-    grid[gridKey(row, col)] = "O"
-    let _ = placeMark(at: row, col: col, player: "O")
-    
-    // Increment turn counter for AI move
-    totalTurns += 1
-    
-    // Check for AI win
-    if checkForWin(at: row, col: col, player: "O") {
-      showWinAlert(for: "O")
-      return
-    }
-    
-    // Switch back to player turn
-    currentPlayer = "X"
-    updateTurnIndicator()
-  }
-  
-  // MARK: - AI Thinking Animation
-  
-  func showAIThinking() {
-    // Create thinking indicator
-    let thinkingNode = SKNode()
-    thinkingNode.name = "AIThinking"
-    thinkingNode.zPosition = 100
-    
-    // Position relative to camera
-    guard let camera = self.camera else { return }
-    
-    // Background bubble
-    let background = SKShapeNode(rectOf: CGSize(width: 180, height: 50), cornerRadius: 25)
-    background.fillColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0.8)
-    background.strokeColor = currentTheme.playerOColor
-    background.lineWidth = 2
-    
-    // Add glow effect for neon theme
-    if currentTheme == .neon {
-      background.glowWidth = 4
-    }
-    
-    thinkingNode.addChild(background)
-    
-    // AI thinking text
-    let thinkingText = SKLabelNode(text: "🤖 AI Thinking...")
-    thinkingText.fontName = "AvenirNext-Medium"
-    thinkingText.fontSize = 16
-    thinkingText.fontColor = .white
-    thinkingText.verticalAlignmentMode = .center
-    thinkingText.horizontalAlignmentMode = .center
-    thinkingText.position = CGPoint(x: -15, y: 0)
-    thinkingNode.addChild(thinkingText)
-    
-    // Animated dots
-    let dots = SKLabelNode(text: "...")
-    dots.fontName = "AvenirNext-Medium"
-    dots.fontSize = 16
-    dots.fontColor = currentTheme.playerOColor
-    dots.verticalAlignmentMode = .center
-    dots.horizontalAlignmentMode = .center
-    dots.position = CGPoint(x: 45, y: 0)
-    
-    // Animate dots
-    let fadeOut = SKAction.fadeAlpha(to: 0.3, duration: 0.5)
-    let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.5)
-    dots.run(SKAction.repeatForever(SKAction.sequence([fadeOut, fadeIn])))
-    
-    thinkingNode.addChild(dots)
-    
-    // Position thinking indicator at top-right of screen
-    thinkingNode.position = CGPoint(x: frame.width/2 - 100, y: frame.height/2 - 80)
-    
-    // Add entrance animation
-    thinkingNode.setScale(0)
-    thinkingNode.run(SKAction.scale(to: 1.0, duration: 0.2))
-    
-    camera.addChild(thinkingNode)
-  }
-  
-  func hideAIThinking() {
-    guard let camera = self.camera,
-          let thinkingNode = camera.childNode(withName: "AIThinking") else { return }
-    
-    // Exit animation
-    thinkingNode.run(SKAction.sequence([
-      SKAction.scale(to: 0, duration: 0.2),
-      SKAction.removeFromParent()
-    ]))
-  }
-
   // ...existing code...
   
   func restartGame() {
@@ -852,7 +602,6 @@ class GameScene: SKScene {
     
     // Recreate turn indicator
     addTurnIndicator()
-    addAIDifficultyIndicator() // Re-add AI difficulty indicator
     
     // Play restart sound
     SoundManager.shared.playButtonSound()
@@ -1018,12 +767,6 @@ class GameScene: SKScene {
   func showWinAlert(for player: String) {
     // Play win sound effect
     SoundManager.shared.playWinSound()
-    
-    // Record game result for adaptive difficulty (only in single player mode)
-    if isSinglePlayer {
-      let playerWon = (player == "X")
-      PlayerProfileManager.shared.recordGameResult(playerWon: playerWon, turnsPlayed: totalTurns)
-    }
     
     let popup = WinPopup(size: self.size, winner: player, theme: currentTheme)
     popup.zPosition = 1000

@@ -19,9 +19,6 @@
 		D1408DDF2D36F68000EDDBC7 /* SoundManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */; };
 		D1408DE02D36F69000EDDBC7 /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1408DDF2D36F69000EDDBC7 /* MenuScene.swift */; };
 		D141798C2DF49A2100360A41 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D141798B2DF49A2100360A41 /* ThemeManager.swift */; };
-		E5D3C2FC2DF6924B0070A5EF /* AIBot.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D3C2FB2DF6924B0070A5EF /* AIBot.swift */; };
-		E5D3C2FE2DF698550070A5EF /* MCTSEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D3C2FD2DF698550070A5EF /* MCTSEngine.swift */; };
-		E5D3C3002DF698610070A5EF /* PlayerProfileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5D3C2FF2DF698610070A5EF /* PlayerProfileManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,9 +54,6 @@
 		D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundManager.swift; sourceTree = "<group>"; };
 		D1408DDF2D36F69000EDDBC7 /* MenuScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuScene.swift; sourceTree = "<group>"; };
 		D141798B2DF49A2100360A41 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
-		E5D3C2FB2DF6924B0070A5EF /* AIBot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBot.swift; sourceTree = "<group>"; };
-		E5D3C2FD2DF698550070A5EF /* MCTSEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCTSEngine.swift; sourceTree = "<group>"; };
-		E5D3C2FF2DF698610070A5EF /* PlayerProfileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerProfileManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -140,9 +134,6 @@
 		D1408DDC2D36F62C00EDDBC7 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				E5D3C2FF2DF698610070A5EF /* PlayerProfileManager.swift */,
-				E5D3C2FD2DF698550070A5EF /* MCTSEngine.swift */,
-				E5D3C2FB2DF6924B0070A5EF /* AIBot.swift */,
 				D141798B2DF49A2100360A41 /* ThemeManager.swift */,
 				D1408DDD2D36F67C00EDDBC7 /* WinPopup.swift */,
 				D1408DDE2D36F68000EDDBC7 /* SoundManager.swift */,
@@ -296,15 +287,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5D3C3002DF698610070A5EF /* PlayerProfileManager.swift in Sources */,
 				D1408DD42D36F62700EDDBC7 /* AppDelegate.swift in Sources */,
 				D1408DD52D36F62700EDDBC7 /* GameScene.swift in Sources */,
 				D1408DD62D36F62700EDDBC7 /* GameViewController.swift in Sources */,
 				D1408DDE2D36F67C00EDDBC7 /* WinPopup.swift in Sources */,
 				D1408DDF2D36F68000EDDBC7 /* SoundManager.swift in Sources */,
-				E5D3C2FC2DF6924B0070A5EF /* AIBot.swift in Sources */,
 				D1408DE02D36F69000EDDBC7 /* MenuScene.swift in Sources */,
-				E5D3C2FE2DF698550070A5EF /* MCTSEngine.swift in Sources */,
 				D141798C2DF49A2100360A41 /* ThemeManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
