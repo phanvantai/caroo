@@ -390,8 +390,8 @@ class MenuScene: SKScene {
         SKAction.fadeAlpha(to: 1.0, duration: 0.1)
       ])
     ])) {
-      // Start practice mode (single player game)
-      self.transitionToGame(isSinglePlayer: true)
+      // Show difficulty selection popup
+      self.showDifficultySelectionPopup()
     }
     
     // Play sound effect
@@ -483,14 +483,41 @@ class MenuScene: SKScene {
     switchTheme()
   }
   
-  func transitionToGame(isSinglePlayer: Bool) {
+  func handleDifficultyButtonTap(node: SKNode) {
+    guard let nodeName = node.name,
+          let difficultyString = nodeName.components(separatedBy: "-").last,
+          let difficulty = AIDifficulty(rawValue: difficultyString) else {
+      return
+    }
+    
+    // Button press animation
+    let buttonContainer = node.parent ?? node
+    buttonContainer.run(SKAction.sequence([
+      SKAction.group([
+        SKAction.scale(to: 0.9, duration: 0.1),
+        SKAction.fadeAlpha(to: 0.7, duration: 0.1)
+      ]),
+      SKAction.group([
+        SKAction.scale(to: 1.0, duration: 0.1),
+        SKAction.fadeAlpha(to: 1.0, duration: 0.1)
+      ])
+    ])) {
+      // Close the difficulty popup and start the game
+      self.closePopup(named: "DifficultySelectionPopup")
+      self.transitionToGame(isSinglePlayer: true, aiDifficulty: difficulty)
+    }
+    
+    // Play sound effect
+    SoundManager.shared.playButtonSound()
+  }
+  
+  func transitionToGame(isSinglePlayer: Bool, aiDifficulty: AIDifficulty = .intermediate) {
     // Create transition effect
     let transition = SKTransition.fade(withDuration: 0.8)
     
-    // Create GameScene with the specified game mode
-    let gameScene = GameScene(size: self.size)
+    // Create GameScene with the specified game mode and AI difficulty
+    let gameScene = GameScene(size: self.size, singlePlayer: isSinglePlayer, aiDifficulty: aiDifficulty)
     gameScene.scaleMode = .aspectFill
-    gameScene.isSinglePlayer = isSinglePlayer
     
     // Present the game scene
     self.view?.presentScene(gameScene, transition: transition)
@@ -701,6 +728,194 @@ class MenuScene: SKScene {
     addChild(popup)
   }
   
+  func showDifficultySelectionPopup() {
+    // Set popup state
+    isPopupShowing = true
+    
+    // Create difficulty selection popup
+    let popup = SKNode()
+    popup.name = "DifficultySelectionPopup"
+    popup.zPosition = 100
+    
+    // Background overlay
+    let overlay = SKShapeNode(rect: CGRect(x: -frame.width/2, y: -frame.height/2, width: frame.width, height: frame.height))
+    overlay.fillColor = .black
+    overlay.alpha = 0.5
+    overlay.strokeColor = .clear
+    overlay.name = "PopupOverlay"
+    popup.addChild(overlay)
+    
+    // Popup background
+    let popupBg = SKShapeNode(rectOf: CGSize(width: 320, height: 360), cornerRadius: 20)
+    popupBg.fillColor = currentTheme.backgroundColor
+    popupBg.strokeColor = currentTheme.primaryColor
+    popupBg.lineWidth = 3
+    
+    // Popup title
+    let title = SKLabelNode(text: "Choose AI Difficulty")
+    title.fontName = "AvenirNext-Bold"
+    title.fontSize = 22
+    title.fontColor = currentTheme.primaryColor
+    title.position = CGPoint(x: 0, y: 130)
+    title.horizontalAlignmentMode = .center
+    
+    // Close button
+    let closeButton = SKLabelNode(text: "✕")
+    closeButton.fontName = "AvenirNext-Bold"
+    closeButton.fontSize = 24
+    closeButton.fontColor = currentTheme.secondaryColor
+    closeButton.position = CGPoint(x: 130, y: 140)
+    closeButton.name = "CloseDifficultySelection"
+    
+    // Difficulty buttons
+    let buttonSpacing: CGFloat = 80
+    let startY: CGFloat = 40
+    
+    // Easy button
+    let easyButton = createDifficultyButton(
+      text: "🙂 Easy",
+      subtitle: "Relaxed AI",
+      position: CGPoint(x: 0, y: startY),
+      color: currentTheme.tertiaryColor,
+      difficulty: .novice
+    )
+    
+    // Intermediate button
+    let intermediateButton = createDifficultyButton(
+      text: "🤔 Intermediate", 
+      subtitle: "Balanced AI",
+      position: CGPoint(x: 0, y: startY - buttonSpacing),
+      color: currentTheme.secondaryColor,
+      difficulty: .intermediate
+    )
+    
+    // Hard button
+    let hardButton = createDifficultyButton(
+      text: "🔥 Hard",
+      subtitle: "Strategic AI",
+      position: CGPoint(x: 0, y: startY - buttonSpacing * 2),
+      color: currentTheme.primaryColor,
+      difficulty: .advanced
+    )
+    
+    popup.addChild(popupBg)
+    popup.addChild(title)
+    popup.addChild(closeButton)
+    popup.addChild(easyButton)
+    popup.addChild(intermediateButton)
+    popup.addChild(hardButton)
+    
+    // Add entrance animation
+    popup.setScale(0.3)
+    popup.alpha = 0
+    popup.run(SKAction.group([
+      SKAction.scale(to: 1.0, duration: 0.3),
+      SKAction.fadeIn(withDuration: 0.3)
+    ]))
+    
+    addChild(popup)
+  }
+  
+  func createDifficultyButton(text: String, subtitle: String, position: CGPoint, color: UIColor, difficulty: AIDifficulty) -> SKNode {
+    let buttonContainer = SKNode()
+    buttonContainer.name = "DifficultyButton-\(difficulty.rawValue)"
+    buttonContainer.position = position
+    buttonContainer.zPosition = 5
+    
+    // Button shadow
+    let shadow = SKShapeNode(rectOf: CGSize(width: 260, height: 50), cornerRadius: 25)
+    shadow.fillColor = .black
+    shadow.strokeColor = .clear
+    shadow.alpha = 0.2
+    shadow.position = CGPoint(x: 2, y: -2)
+    buttonContainer.addChild(shadow)
+    
+    // Button background
+    let background = SKShapeNode(rectOf: CGSize(width: 260, height: 50), cornerRadius: 25)
+    background.fillColor = color
+    background.strokeColor = .white
+    background.lineWidth = 2
+    background.alpha = 0.9
+    background.name = "DifficultyButton-\(difficulty.rawValue)"
+    
+    // Button glow effect for neon theme
+    if currentTheme == .neon {
+      let glow = SKShapeNode(rectOf: CGSize(width: 280, height: 60), cornerRadius: 30)
+      glow.fillColor = .clear
+      glow.strokeColor = color
+      glow.lineWidth = 2
+      glow.alpha = 0.4
+      glow.zPosition = -1
+      buttonContainer.addChild(glow)
+      
+      // Animated glow pulse
+      let glowPulse = SKAction.sequence([
+        SKAction.fadeAlpha(to: 0.6, duration: 1.0),
+        SKAction.fadeAlpha(to: 0.2, duration: 1.0)
+      ])
+      glow.run(SKAction.repeatForever(glowPulse))
+    }
+    
+    buttonContainer.addChild(background)
+    
+    // Main text
+    let buttonText = SKLabelNode(text: text)
+    buttonText.fontName = "AvenirNext-Bold"
+    buttonText.fontSize = 18
+    buttonText.fontColor = .white
+    buttonText.verticalAlignmentMode = .center
+    buttonText.horizontalAlignmentMode = .center
+    buttonText.position = CGPoint(x: 0, y: 6)
+    buttonText.name = "DifficultyButton-\(difficulty.rawValue)"
+    
+    // Subtitle text
+    let subtitleText = SKLabelNode(text: subtitle)
+    subtitleText.fontName = "AvenirNext-Medium"
+    subtitleText.fontSize = 12
+    subtitleText.fontColor = .white
+    subtitleText.alpha = 0.8
+    subtitleText.verticalAlignmentMode = .center
+    subtitleText.horizontalAlignmentMode = .center
+    subtitleText.position = CGPoint(x: 0, y: -10)
+    subtitleText.name = "DifficultyButton-\(difficulty.rawValue)"
+    
+    // Text shadows
+    let textShadow = SKLabelNode(text: text)
+    textShadow.fontName = buttonText.fontName
+    textShadow.fontSize = buttonText.fontSize
+    textShadow.fontColor = .black
+    textShadow.alpha = 0.4
+    textShadow.position = CGPoint(x: 1, y: -1)
+    textShadow.verticalAlignmentMode = .center
+    textShadow.horizontalAlignmentMode = .center
+    buttonText.addChild(textShadow)
+    
+    let subtitleShadow = SKLabelNode(text: subtitle)
+    subtitleShadow.fontName = subtitleText.fontName
+    subtitleShadow.fontSize = subtitleText.fontSize
+    subtitleShadow.fontColor = .black
+    subtitleShadow.alpha = 0.4
+    subtitleShadow.position = CGPoint(x: 1, y: -1)
+    subtitleShadow.verticalAlignmentMode = .center
+    subtitleShadow.horizontalAlignmentMode = .center
+    subtitleText.addChild(subtitleShadow)
+    
+    buttonContainer.addChild(buttonText)
+    buttonContainer.addChild(subtitleText)
+    
+    // Subtle floating animation
+    let floatUp = SKAction.moveBy(x: 0, y: 3, duration: 1.5)
+    let floatDown = SKAction.moveBy(x: 0, y: -3, duration: 1.5)
+    floatUp.timingMode = .easeInEaseOut
+    floatDown.timingMode = .easeInEaseOut
+    
+    buttonContainer.run(SKAction.repeatForever(SKAction.sequence([floatUp, floatDown])))
+    
+    return buttonContainer
+  }
+
+  // ...existing popup methods...
+  
   func closePopup(named popupName: String) {
     if let popup = childNode(withName: popupName) {
       // Reset popup state
@@ -727,6 +942,12 @@ class MenuScene: SKScene {
         return
       } else if node.name == "CloseInstructions" {
         closePopup(named: "InstructionsPopup")
+        return
+      } else if node.name == "CloseDifficultySelection" {
+        closePopup(named: "DifficultySelectionPopup")
+        return
+      } else if node.name?.hasPrefix("DifficultyButton-") == true {
+        handleDifficultyButtonTap(node: node)
         return
       } else if node.name == "PopupOverlay" {
         // Close popup when tapping on overlay (outside popup content)
