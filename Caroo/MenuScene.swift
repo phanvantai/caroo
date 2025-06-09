@@ -390,7 +390,8 @@ class MenuScene: SKScene {
         SKAction.fadeAlpha(to: 1.0, duration: 0.1)
       ])
     ])) {
-      self.transitionToGame(isSinglePlayer: true)
+      // Show AI difficulty selection popup
+      self.showAIDifficultyPopup()
     }
     
     // Play sound effect
@@ -714,6 +715,219 @@ class MenuScene: SKScene {
     }
   }
   
+  // MARK: - AI Difficulty Selection
+  
+  func showAIDifficultyPopup() {
+    isPopupShowing = true
+    
+    let popup = SKNode()
+    popup.name = "AIDifficultyPopup"
+    popup.zPosition = 100
+    
+    // Semi-transparent background overlay
+    let overlay = SKShapeNode(rect: CGRect(x: -frame.width, y: -frame.height, width: frame.width * 2, height: frame.height * 2))
+    overlay.fillColor = .black
+    overlay.alpha = 0.6
+    overlay.strokeColor = .clear
+    overlay.name = "PopupOverlay"
+    popup.addChild(overlay)
+    
+    // Popup background
+    let popupBg = SKShapeNode(rectOf: CGSize(width: 350, height: 420), cornerRadius: 20)
+    popupBg.fillColor = currentTheme.backgroundColor
+    popupBg.strokeColor = currentTheme.primaryColor
+    popupBg.lineWidth = 3
+    
+    // Add glow effect for neon theme
+    if currentTheme == .neon {
+      popupBg.glowWidth = 6
+    }
+    
+    // Popup title
+    let title = SKLabelNode(text: "AI Difficulty")
+    title.fontName = "AvenirNext-Bold"
+    title.fontSize = 26
+    title.fontColor = currentTheme.primaryColor
+    title.position = CGPoint(x: 0, y: 160)
+    title.horizontalAlignmentMode = .center
+    
+    // Close button
+    let closeButton = SKLabelNode(text: "✕")
+    closeButton.fontName = "AvenirNext-Bold"
+    closeButton.fontSize = 30
+    closeButton.fontColor = currentTheme.secondaryColor
+    closeButton.position = CGPoint(x: 150, y: 170)
+    closeButton.name = "CloseAIDifficulty"
+    
+    // Current difficulty indicator
+    let currentLabel = SKLabelNode(text: "Current: \(AIBot.shared.currentDifficulty.description)")
+    currentLabel.fontName = "AvenirNext-Medium"
+    currentLabel.fontSize = 14
+    currentLabel.fontColor = currentTheme.accentColor
+    currentLabel.position = CGPoint(x: 0, y: 120)
+    currentLabel.horizontalAlignmentMode = .center
+    
+    popup.addChild(popupBg)
+    popup.addChild(title)
+    popup.addChild(closeButton)
+    popup.addChild(currentLabel)
+    
+    // Create difficulty buttons
+    let difficulties = AIBot.Difficulty.allCases
+    let buttonSpacing: CGFloat = 80
+    let startY: CGFloat = 60
+    
+    for (index, difficulty) in difficulties.enumerated() {
+      let difficultyButton = createDifficultyButton(
+        difficulty: difficulty,
+        position: CGPoint(x: 0, y: startY - CGFloat(index) * buttonSpacing),
+        isSelected: difficulty == AIBot.shared.currentDifficulty
+      )
+      popup.addChild(difficultyButton)
+    }
+    
+    // Add entrance animation
+    popup.setScale(0.3)
+    popup.alpha = 0
+    popup.run(SKAction.group([
+      SKAction.scale(to: 1.0, duration: 0.3),
+      SKAction.fadeIn(withDuration: 0.3)
+    ]))
+    
+    addChild(popup)
+  }
+  
+  func createDifficultyButton(difficulty: AIBot.Difficulty, position: CGPoint, isSelected: Bool) -> SKNode {
+    let buttonContainer = SKNode()
+    buttonContainer.name = "DifficultyButton-\(difficulty.rawValue)"
+    buttonContainer.position = position
+    buttonContainer.zPosition = 5
+    
+    // Button dimensions
+    let buttonSize = CGSize(width: 280, height: 60)
+    
+    // Button shadow
+    let shadow = SKShapeNode(rectOf: buttonSize, cornerRadius: 30)
+    shadow.fillColor = .black
+    shadow.strokeColor = .clear
+    shadow.alpha = 0.2
+    shadow.position = CGPoint(x: 2, y: -2)
+    buttonContainer.addChild(shadow)
+    
+    // Button background
+    let background = SKShapeNode(rectOf: buttonSize, cornerRadius: 30)
+    background.name = "DifficultyButton-\(difficulty.rawValue)"
+    
+    // Color based on difficulty and selection
+    if isSelected {
+      background.fillColor = currentTheme.primaryColor
+      background.strokeColor = .white
+      background.lineWidth = 3
+      background.alpha = 1.0
+    } else {
+      switch difficulty {
+      case .medium:
+        background.fillColor = currentTheme.secondaryColor
+      case .hard:
+        background.fillColor = currentTheme.tertiaryColor
+      case .expert:
+        background.fillColor = currentTheme.quaternaryColor
+      case .adaptive:
+        background.fillColor = currentTheme.primaryColor.withAlphaComponent(0.7)
+      }
+      background.strokeColor = .white
+      background.lineWidth = 2
+      background.alpha = 0.8
+    }
+    
+    // Add glow effect for neon theme
+    if currentTheme == .neon {
+      let glow = SKShapeNode(rectOf: CGSize(width: 290, height: 70), cornerRadius: 35)
+      glow.fillColor = .clear
+      glow.strokeColor = background.fillColor
+      glow.lineWidth = 2
+      glow.alpha = 0.4
+      glow.zPosition = -1
+      buttonContainer.addChild(glow)
+      
+      if isSelected {
+        // Animated glow pulse for selected button
+        let glowPulse = SKAction.sequence([
+          SKAction.fadeAlpha(to: 0.8, duration: 1.0),
+          SKAction.fadeAlpha(to: 0.2, duration: 1.0)
+        ])
+        glow.run(SKAction.repeatForever(glowPulse))
+      }
+    }
+    
+    buttonContainer.addChild(background)
+    
+    // Button text
+    let buttonText = SKLabelNode(text: difficulty.description)
+    buttonText.fontName = "AvenirNext-Bold"
+    buttonText.fontSize = 18
+    buttonText.fontColor = .white
+    buttonText.verticalAlignmentMode = .center
+    buttonText.horizontalAlignmentMode = .center
+    buttonText.name = "DifficultyButton-\(difficulty.rawValue)"
+    
+    // Text shadow
+    let textShadow = SKLabelNode(text: difficulty.description)
+    textShadow.fontName = buttonText.fontName
+    textShadow.fontSize = buttonText.fontSize
+    textShadow.fontColor = .black
+    textShadow.alpha = 0.4
+    textShadow.position = CGPoint(x: 1, y: -1)
+    textShadow.verticalAlignmentMode = .center
+    textShadow.horizontalAlignmentMode = .center
+    buttonText.addChild(textShadow)
+    
+    buttonContainer.addChild(buttonText)
+    
+    // Selection indicator
+    if isSelected {
+      let checkmark = SKLabelNode(text: "✓")
+      checkmark.fontName = "AvenirNext-Bold"
+      checkmark.fontSize = 24
+      checkmark.fontColor = .white
+      checkmark.position = CGPoint(x: 110, y: 0)
+      checkmark.verticalAlignmentMode = .center
+      checkmark.horizontalAlignmentMode = .center
+      
+      // Checkmark glow for neon theme
+      if currentTheme == .neon {
+        checkmark.fontColor = currentTheme.playerXColor
+      }
+      
+      buttonContainer.addChild(checkmark)
+    }
+    
+    // Subtle floating animation for non-selected buttons
+    if !isSelected {
+      let floatUp = SKAction.moveBy(x: 0, y: 3, duration: 2.0)
+      let floatDown = SKAction.moveBy(x: 0, y: -3, duration: 2.0)
+      floatUp.timingMode = .easeInEaseOut
+      floatDown.timingMode = .easeInEaseOut
+      
+      buttonContainer.run(SKAction.repeatForever(SKAction.sequence([floatUp, floatDown])))
+    }
+    
+    return buttonContainer
+  }
+  
+  func handleDifficultySelection(_ difficulty: AIBot.Difficulty) {
+    // Set the AI difficulty
+    AIBot.shared.currentDifficulty = difficulty
+    
+    // Close the popup
+    closePopup(named: "AIDifficultyPopup")
+    
+    // Start single player game with selected difficulty
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+      self.transitionToGame(isSinglePlayer: true)
+    }
+  }
+  
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     guard let touch = touches.first else { return }
     
@@ -726,6 +940,28 @@ class MenuScene: SKScene {
         return
       } else if node.name == "CloseInstructions" {
         closePopup(named: "InstructionsPopup")
+        return
+      } else if node.name == "CloseAIDifficulty" {
+        closePopup(named: "AIDifficultyPopup")
+        return
+      } else if node.name?.hasPrefix("DifficultyButton-") == true {
+        // Handle difficulty selection
+        let difficultyName = String(node.name?.dropFirst("DifficultyButton-".count) ?? "")
+        if let difficulty = AIBot.Difficulty(rawValue: difficultyName) {
+          // Button press animation
+          if let buttonContainer = node.parent {
+            buttonContainer.run(SKAction.sequence([
+              SKAction.scale(to: 0.9, duration: 0.1),
+              SKAction.scale(to: 1.0, duration: 0.1)
+            ]))
+          }
+          
+          // Play sound effect
+          SoundManager.shared.playButtonSound()
+          
+          // Handle selection
+          handleDifficultySelection(difficulty)
+        }
         return
       } else if node.name == "PopupOverlay" {
         // Close popup when tapping on overlay (outside popup content)
